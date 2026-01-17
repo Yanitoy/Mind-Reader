@@ -62,7 +62,7 @@ export default function MindReaderApp() {
   const [isBusy, setIsBusy] = useState(false);
   const [thoughtText, setThoughtText] = useState("");
   const [bubbleVisible, setBubbleVisible] = useState(false);
-  const [emotion, setEmotion] = useState("neutral");
+  const [emotion, setEmotion] = useState(null);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -84,6 +84,10 @@ export default function MindReaderApp() {
     setStatusError(Boolean(isError));
   }
 
+  function setEmotionSafe(next) {
+    setEmotion((prev) => (prev === next ? prev : next));
+  }
+
   function resizeCanvasToVideo() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -102,6 +106,7 @@ export default function MindReaderApp() {
       return models.loading;
     }
 
+    // Load and cache the TF.js models once per session.
     models.loading = (async () => {
       await tf.ready();
       models.faceModel = await blazeface.load();
@@ -260,6 +265,7 @@ export default function MindReaderApp() {
       return null;
     }
 
+    // Crop the face region and run the expression model on the resized patch.
     cropCtx.clearRect(0, 0, cropCanvasRef.current.width, cropCanvasRef.current.height);
     cropCtx.drawImage(
       video,
@@ -296,22 +302,25 @@ export default function MindReaderApp() {
     return EMOTION_LABELS[maxIndex] || "neutral";
   }
 
-  function updateThought(emotion) {
+  function updateThought(emotionLabel) {
+    // Throttle updates so the bubble doesn't flicker every frame.
     const now = performance.now();
     const tracker = stateRef.current;
-    const shouldUpdate = emotion !== tracker.lastEmotion || now - tracker.lastThoughtAt > THOUGHT_INTERVAL_MS;
+    const shouldUpdate =
+      emotionLabel !== tracker.lastEmotion || now - tracker.lastThoughtAt > THOUGHT_INTERVAL_MS;
 
     if (shouldUpdate) {
-      setThoughtText(getRandomThoughtForEmotion(emotion));
+      setThoughtText(getRandomThoughtForEmotion(emotionLabel));
       tracker.lastThoughtAt = now;
-      tracker.lastEmotion = emotion;
+      tracker.lastEmotion = emotionLabel;
     }
 
-    setEmotion(emotion);
+    setEmotionSafe(emotionLabel);
     showBubble();
   }
 
   async function loop() {
+    // Main loop: detect a face, classify emotion, update visuals.
     if (!stateRef.current.running) {
       return;
     }
@@ -339,6 +348,7 @@ export default function MindReaderApp() {
       hideBubble();
       stateRef.current.currentEmotion = null;
       stateRef.current.lastEmotion = null;
+      setEmotionSafe(null);
       stateRef.current.rafId = requestAnimationFrame(loop);
       return;
     }
@@ -349,10 +359,10 @@ export default function MindReaderApp() {
     const now = performance.now();
     if (now - stateRef.current.lastPredictionAt > PREDICTION_INTERVAL_MS) {
       stateRef.current.lastPredictionAt = now;
-      const emotion = await classifyFace(faceBox);
-      if (emotion && stateRef.current.running) {
-        stateRef.current.currentEmotion = emotion;
-        updateThought(emotion);
+      const emotionLabel = await classifyFace(faceBox);
+      if (emotionLabel && stateRef.current.running) {
+        stateRef.current.currentEmotion = emotionLabel;
+        updateThought(emotionLabel);
       }
     }
 
@@ -405,6 +415,7 @@ export default function MindReaderApp() {
     hideBubble();
     stateRef.current.currentEmotion = null;
     stateRef.current.lastEmotion = null;
+    setEmotionSafe(null);
     stopCamera();
 
     if (!preserveStatus) {
@@ -460,6 +471,16 @@ export default function MindReaderApp() {
           <span className="bubble-text">{thoughtText}</span>
         </div>
       </section>
+
+      <div className="emotion-readout" role="status" aria-live="polite">
+        <span className="emotion-label">Detected emotion</span>
+        <span className="emotion-value">
+          <span className="emotion-emoji" aria-hidden="true">
+            {emotion ? EMOJI_MAP[emotion] || "🙂" : "👀"}
+          </span>
+          <span className="emotion-text">{emotion || "No face detected"}</span>
+        </span>
+      </div>
 
       <p className="note">
         This app is for fun only - it does NOT actually read minds, it only guesses facial expressions.

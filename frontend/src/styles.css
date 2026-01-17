@@ -186,6 +186,40 @@ canvas {
   text-align: left;
 }
 
+.emotion-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 198, 106, 0.3);
+  background: rgba(8, 15, 15, 0.55);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.emotion-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.emotion-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.emotion-emoji {
+  font-size: 1.2rem;
+}
+
+.emotion-text {
+  text-transform: capitalize;
+}
+
 .note {
   margin: 0;
   color: var(--muted);
