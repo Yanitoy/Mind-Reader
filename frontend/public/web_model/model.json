@@ -1,0 +1,60 @@
+{
+  "format": "layers-model",
+  "generatedBy": "TensorFlow.js v4.20.0",
+  "convertedBy": "TensorFlow.js Converter v4.20.0",
+  "modelTopology": {
+    "class_name": "Sequential",
+    "config": {
+      "name": "dummy_emotion_model",
+      "layers": [
+        {
+          "class_name": "Flatten",
+          "config": {
+            "name": "flatten",
+            "trainable": true,
+            "dtype": "float32",
+            "data_format": "channels_last",
+            "batch_input_shape": [null, 48, 48, 1]
+          }
+        },
+        {
+          "class_name": "Dense",
+          "config": {
+            "name": "dense",
+            "trainable": true,
+            "dtype": "float32",
+            "units": 7,
+            "activation": "softmax",
+            "use_bias": true,
+            "kernel_initializer": {
+              "class_name": "GlorotUniform",
+              "config": {
+                "seed": null
+              }
+            },
+            "bias_initializer": {
+              "class_name": "Zeros",
+              "config": {}
+            },
+            "kernel_regularizer": null,
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null
+          }
+        }
+      ]
+    },
+    "keras_version": "2.12.0",
+    "backend": "tensorflow"
+  },
+  "weightsManifest": [
+    {
+      "paths": ["group1-shard1of1.bin"],
+      "weights": [
+        {"name": "dense/kernel", "shape": [2304, 7], "dtype": "float32"},
+        {"name": "dense/bias", "shape": [7], "dtype": "float32"}
+      ]
+    }
+  ]
+}
