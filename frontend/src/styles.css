@@ -228,11 +228,54 @@ canvas {
 }
 
 @media (max-width: 600px) {
+  body {
+    align-items: flex-start;
+  }
+
   .controls {
     border-radius: 18px;
+    padding: 12px 14px;
+    width: 100%;
   }
 
   .title {
     letter-spacing: 0.04em;
+  }
+
+  .app {
+    width: 100%;
+    padding: 24px 16px 28px;
+    gap: 16px;
+  }
+
+  #stage {
+    width: 100%;
+    border-radius: 16px;
+  }
+
+  #thoughtBubble {
+    max-width: 200px;
+    font-size: 0.95rem;
+  }
+
+  .emotion-readout {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .note {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 420px) {
+  button {
+    width: 100%;
+  }
+
+  #thoughtBubble {
+    max-width: 180px;
+    padding: 10px 12px;
   }
 }

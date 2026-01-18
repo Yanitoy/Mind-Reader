@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node ../scripts/build_thoughts_from_csv.js --input ../backend/train.csv --output ./public/thoughts.json",
     "dev": "vite",
+    "prebuild": "node ../scripts/build_thoughts_from_csv.js --input ../backend/train.csv --output ./public/thoughts.json",
     "build": "vite build",
     "preview": "vite preview"
   },

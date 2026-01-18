@@ -26,8 +26,11 @@ const EMOJI_MAP = {
 const THOUGHT_INTERVAL_MS = 2000;
 const PREDICTION_INTERVAL_MS = 250;
 
-function getRandomThoughtForEmotion(emotion) {
-  const options = THOUGHTS[emotion] || THOUGHTS.neutral;
+function getRandomThoughtForEmotion(emotion, thoughtsMap) {
+  const options = (thoughtsMap && thoughtsMap[emotion]) || THOUGHTS[emotion] || THOUGHTS.neutral;
+  if (!options.length) {
+    return "Loading thoughts...";
+  }
   const index = Math.floor(Math.random() * options.length);
   return options[index];
 }
@@ -60,6 +63,7 @@ export default function MindReaderApp() {
   const [statusError, setStatusError] = useState(false);
   const [running, setRunning] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [thoughts, setThoughts] = useState(THOUGHTS);
   const [thoughtText, setThoughtText] = useState("");
   const [bubbleVisible, setBubbleVisible] = useState(false);
   const [emotion, setEmotion] = useState(null);
@@ -76,6 +80,31 @@ export default function MindReaderApp() {
         cancelAnimationFrame(stateRef.current.rafId);
       }
       stopCamera();
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/thoughts.json")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data || cancelled) {
+          return;
+        }
+        setThoughts((prev) => {
+          const merged = { ...prev };
+          Object.keys(prev).forEach((key) => {
+            if (Array.isArray(data[key]) && data[key].length > 0) {
+              merged[key] = data[key];
+            }
+          });
+          return merged;
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -310,7 +339,7 @@ export default function MindReaderApp() {
       emotionLabel !== tracker.lastEmotion || now - tracker.lastThoughtAt > THOUGHT_INTERVAL_MS;
 
     if (shouldUpdate) {
-      setThoughtText(getRandomThoughtForEmotion(emotionLabel));
+      setThoughtText(getRandomThoughtForEmotion(emotionLabel, thoughts));
       tracker.lastThoughtAt = now;
       tracker.lastEmotion = emotionLabel;
     }
